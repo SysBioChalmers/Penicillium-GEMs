@@ -15,36 +15,36 @@ Modeling of metabolism at the genome scale have proved to be an efficient approa
 
 - Pubmed ID: none yet
 
-- Last update: 2017-11-28
+- Last update: 2017-11-30
 
 - The model:
 
 |Taxonomy | Template Model | Reactions | Metabolites| Genes |
 | ------------- |:-------------:|:-------------:|:-------------:|-----|
-|Penicillium steckii|	Psteckii.xml|	2555|	3101|	3597|
-|Penicillium expansum|	Pexpansum.xml|	2601|	3085|	3973|
-|Penicillium italicum|	Pitalicum.xml|	2453|	2924|	3253|
-|Penicillium fuscoglaucum|	Pfuscoglaucum.xml|	2637|	3154|	3756|
-|Penicillium antarcticum|	Pantarcticum.xml|	2572|	3064|	3569|
-|Penicillium polonicum|	Ppolonicum.xml|	2537|	3016|	3571|
-|Penicillium freii|	Pfreii.xml|	2562|	3037|	3658|
-|Penicillium decumbens|	Pdecumbens.xml|	2211|	2623|	2602|
-|Penicillium roqueforti|	Proqueforti.xml|	2467|	2935|	3433|
-|Penicillium brasilianum|	Pbrasilianum.xml|	2658|	3192|	3935|
-|Penicillium camemberti|	Pcamemberti.xml|	2631|	3134|	3732|
-|Penicillium flavigenum|	Pflavigenum.xml|	2506|	2973|	3420|
-|Penicillium nalgiovense|	Pnalgiovense.xml|	2515|	2967|	3571|
-|Penicillium coprophilum|	Pcoprophilum.xml|	2443|	2895|	3181|
-|Penicillium biforme|	Pbiforme.xml|	2638|	3134|	3776|
-|Penicillium digitatum|	Pdigitatum.xml|	2351|	2829|	2987|
-|Penicillium griseofulvum|	Pgriseofulvum.xml|	2579|	3066|	3558|
-|Penicillium solitum|	Psolitum.xml|	2623|	3134|	3793|
-|Penicillium carneum|	Pcarneum.xml|	2469|	2931|	3267|
-|Penicillium arizonense|	Parizonense.xml|	2629|	3120|	3919|
-|Penicillium paneum|	Ppaneum.xml|	2468|	2935|	3239|
-|Penicillium vulpinum|	Pvulpinum.xml|	2501|	2949|	3521|
-|Penicillium oxalicum|	Poxalicum.xml|	2458|	2967|	3297|
-|Penicillium rubens|	Prubens.xml|	2574|	3058|	3679|
+|Penicillium antarcticum|	Pantarcticum.xml|	2572|	3064|	1755|
+|Penicillium arizonense|	Parizonense.xml|	2629|	3120|	1954|
+|Penicillium biforme|	Pbiforme.xml|	2638|	3134|	1878|
+|Penicillium brasilianum|	Pbrasilianum.xml|	2658|	3192|	1894|
+|Penicillium camemberti|	Pcamemberti.xml|	2631|	3134|	1859|
+|Penicillium carneum|	Pcarneum.xml|	2469|	2931|	1611|
+|Penicillium coprophilum|	Pcoprophilum.xml|	2443|	2895|	1530|
+|Penicillium decumbens|	Pdecumbens.xml|	2211|	2623|	1256|
+|Penicillium digitatum|	Pdigitatum.xml|	2351|	2829|	1403|
+|Penicillium expansum|	Pexpansum.xml|	2601|	3085|	1873|
+|Penicillium flavigenum|	Pflavigenum.xml|	2506|	2973|	1712|
+|Penicillium freii|	Pfreii.xml|	2562|	3037|	1766|
+|Penicillium fuscoglaucum|	Pfuscoglaucum.xml|	2637|	3154|	1886|
+|Penicillium griseofulvum|	Pgriseofulvum.xml|	2579|	3066|	1700|
+|Penicillium italicum|	Pitalicum.xml|	2453|	2924|	1536|
+|Penicillium nalgiovense|	Pnalgiovense.xml|	2515|	2967|	1677|
+|Penicillium oxalicum|	Poxalicum.xml|	2458|	2967|	1435|
+|Penicillium paneum|	Ppaneum.xml|	2468|	2935|	1581|
+|Penicillium polonicum|	Ppolonicum.xml|	2537|	3016|	1727|
+|Penicillium roqueforti|	Proqueforti.xml|	2467|	2935|	1611|
+|Penicillium rubens|	Prubens.xml|	2574|	3058|	1771|
+|Penicillium solitum|	Psolitum.xml|	2623|	3134|	1886|
+|Penicillium steckii|	Psteckii.xml|	2555|	3101|	1748|
+|Penicillium vulpinum|	Pvulpinum.xml|	2501|	2949|	1627|
 
 
 
