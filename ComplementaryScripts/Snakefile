@@ -1,0 +1,40 @@
+rule createMonomerFastaFiles:
+  input:
+    "data/proteins.dat",
+    "data/uniprot-seq-ids.seq"
+  output:
+    "monomers/",
+    "complexes/"
+  shell:
+    "perl scripts/getProteinsMonomerAssociation {input} {output}"
+
+rule createComplexeFile:
+  input: 
+    "data/proteins.dat",
+    "monomers/",
+    "complexes/",
+  output:
+    "complexes.tsv"
+  shell:
+    "perl scripts/createCplxFile {input} {output}"
+
+rule createReacMonomAssoc:
+  input:
+    "data/enzrxns.dat",
+    "complexes.tsv"
+  output:
+    "reacMonomAssoc.tsv"
+  shell: 
+    "perl scripts/createReacMonomAssoc {input} {output}"
+
+rule createProtReacAssociation:
+  input:
+    "reacMonomAssoc.tsv",
+    "monomers/",
+    "complexes/"
+  output: 
+    "forBlastFinal/",
+    "forHmmFinal/"
+  shell:
+    "perl scripts/createProtReacAssociation {input} {output}"
+

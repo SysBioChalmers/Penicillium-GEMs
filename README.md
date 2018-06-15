@@ -71,6 +71,9 @@ or
 * Clone [Penicillium-GEMs](https://github.com/SysBioChalmers/Penicillium-GEMs) branch from [SysBioChalmers GitHub](https://github.com/SysBioChalmers)
 * Add the directory to your Matlab path, instructions [here](https://se.mathworks.com/help/matlab/ref/addpath.html?requestedDomain=www.mathworks.com)
 
+## Complementary Scripts
+The snakefile contains a workflow to parse MetaCyc flat files and create files that could be used for Blast or HMMs studies. 
+- MetaCyc flat files should be put in the "data" folder
 
 ## Contributors
 - [Sylvain Prigent](http://www.sysbio.se/profiles/Sylvain.html), Chalmers University of Technology, Gothenburg Sweden

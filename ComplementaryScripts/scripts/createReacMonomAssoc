@@ -1,0 +1,256 @@
+#!/usr/bin/perl -w -- -*-Perl-*-
+
+use IO::File;
+use warnings;
+use strict;
+
+my ($fileInReacDat, $fileInCplex, $fileOut) = @ARGV;
+
+if (!defined $fileOut) {die "USAGE: perl createReacMonomAssoc reactions.dat complexes.tsv fileOutReactionMonomerAssociation \n"}
+
+my $ifhDat = new IO::File "<$fileInReacDat"
+    or die "Can't read from input file '$fileInReacDat': $!\n";
+my $ifhCpl = new IO::File "<$fileInCplex"
+    or die "Can't read from input file '$fileInCplex': $!\n";
+my $ofh    = new IO::File ">$fileOut"
+    or die "Can't write in output file '$fileOut' : $!\n";
+
+my $sequences  = {};
+
+my ($reacMono) = &readDatFile($ifhDat);
+my ($complexe) = &readCplFile($ifhCpl);
+
+my $seqPerReac = {};
+my $isComplex  = {};
+
+foreach my $reac (keys %{$reacMono})
+{
+  my $isCplx    = 0;
+  my $isNotCplx = 0;
+  print $ofh "$reac";
+  foreach my $monom (keys %{$reacMono->{$reac}})
+  {
+    if (exists $complexe->{$monom}) 
+    {
+      print $ofh "\tcomplex";
+      $isComplex->{$reac} = 1;
+    }
+    else
+    {
+      print $ofh "\tnoComplex\t$monom";
+    }
+  }
+  print $ofh "\n";
+}
+
+print $ofh "\n---------COMPLEXES----------\n\n";
+
+foreach my $reac (keys %{$isComplex})
+{
+  print $ofh "$reac";
+  my $numOfDiffComplexes = keys %{$reacMono->{$reac}};
+  my $tmp = {};
+  foreach my $cplx (keys %{$reacMono->{$reac}})
+  {
+    foreach my $monom (keys %{$complexe->{$cplx}})
+    {
+      $tmp->{$cplx}->{$monom} = 1;
+    }
+  }
+  my $allOnes = 1;
+  foreach my $cplx (keys %{$tmp})
+  {
+    my $numOfProt = keys %{$tmp->{$cplx}};
+    if ($numOfProt > 1) {$allOnes = 0;}
+  }
+  if ($allOnes == 1)
+  {
+    foreach my $cplx (keys %{$tmp})
+    {
+      foreach my $monom (keys %{$tmp->{$cplx}})
+      {
+        print $ofh "\t$monom";
+      }
+    }
+  }
+  else
+  {
+    my $txt = "";
+    foreach my $cplx (keys %{$tmp})
+    {
+      my $tmpTxt = "(";
+      foreach my $monom (keys %{$tmp->{$cplx}})
+      {
+        if ($tmpTxt =~ m#^\($#)
+        {
+          $tmpTxt = $tmpTxt.$monom;
+        }
+        else
+        {
+          $tmpTxt = "$tmpTxt and $monom";
+        }
+      }
+      $tmpTxt = "$tmpTxt)";
+      if ($txt =~ m#^$#) {$txt = $tmpTxt;}
+      else {$txt = "$txt or $tmpTxt";}
+    }
+    print $ofh "\t$txt";
+  }
+  print $ofh "\n";
+}
+
+
+$ifhDat->close();
+$ifhCpl->close();
+$ofh->close();
+exit ;
+
+sub readCplFile
+{
+  my ($fh) = @_;
+  my $hash = {};
+
+  while (my $line = <$fh>)
+  {
+    if ($line !~ m#^\S+\tnoSequence$#)
+    {
+      if ($line =~ m#^\s*(\S+)\t(\S.*)\s*$#)
+      {
+        my $cplx = $1;
+        my $mono = $2;
+        my @tmp  = split("\t", $mono);
+        foreach my $monom (@tmp)
+        {
+          if ($monom =~ m#^\s*(\S+);(\S+)\s*$#)
+          {
+            my $prot = $1;
+            my $coef = $2;
+            $hash->{$cplx}->{$prot} = $coef;
+          }
+        }
+      }
+    }
+    elsif ($line =~ m#^(\S+)\tnoSequence$#)
+    {
+      my $cplx = $1;
+      $hash->{$cplx}->{"noSeq"} = 1;
+    }
+  }
+
+  return($hash);
+}
+
+sub readDatFile
+{
+  my ($fh) = @_;
+  my $hash = {};
+
+  my $id   = "";
+  my $reac = "";
+  my $enz  = "";
+
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*UNIQUE-ID - (\S+)\s*$#)
+    {
+      $id = $1;
+    }
+    elsif ($line =~ m#^\s*ENZYME - (\S+)\s*$#)
+    {
+      my $tmp = $1;
+      if ($enz !~ m#^\s*$#) {print "WARNING: it seems that $id possess multiple enzymes\n";}
+      else 
+      {
+        $enz = $tmp;
+      }
+    }
+    elsif ($line =~ m#^\s*REACTION - (\S+)\s*$#)
+    {
+      $reac = $1;
+      $hash->{$reac}->{$enz} = $id;
+    }
+    elsif ($line =~ m#^\s*//\s*$#)
+    {
+      $id   = "";
+      $reac = "";
+      $enz  = "";
+    }
+  }
+
+  return($hash);
+}
+
+sub readFastaFile
+{
+  my ($fileName, $fh, $hash) = @_;
+  
+  my $monom = "";
+
+  if ($fileName =~ m#^\s*\S*/([^/]+).fasta\s*$#)
+  {
+    $monom = $1;
+  }
+  elsif ($fileName !~ m#^.*/\.\S.*#)
+  {
+    die "ERROR: file name not understood:$fileName\n";
+  }
+  
+  my $protId = "";
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*>\s*(\S.*+)\s*$#)
+    {
+      $protId = $1;
+    }
+    elsif ($line =~ m#^\s*(\S+)\s*$#)
+    {
+      my $seq = $1;
+      if (exists $hash->{$monom}->{$protId})
+      {
+        my $tmp = $hash->{$monom}->{$protId};
+        $tmp = $tmp.$seq;
+        $hash->{$monom}->{$protId} = $seq;
+      }
+      else
+      {
+        $hash->{$monom}->{$protId} = $seq;
+      }
+    }
+    elsif ($line !~ m#^\s*$#)
+    {
+      print "WARNING: line not understood in file $fileName:\n$line";
+    }
+  }
+
+  return($hash);
+}
+
+
+sub GetFilesList
+{
+  my $Path = $_[0];
+  my $FileFound;
+  my @FilesList=();
+
+  # Lecture de la liste des fichiers
+  opendir (my $FhRep, $Path)
+    or die "Impossible d'ouvrir le repertoire $Path\n";
+  my @Contenu = grep { !/^\.\.?$/ } readdir($FhRep);
+  closedir ($FhRep);
+
+  foreach my $FileFound (@Contenu) 
+  {
+    # Traitement des fichiers
+    if ( -f "$Path/$FileFound") 
+    {
+      push ( @FilesList, "$Path/$FileFound" );
+    }
+  # Traitement des repertoires
+    elsif ( -d "$Path/$FileFound") 
+    {
+      # Boucle pour lancer la recherche en mode recursif
+      push (@FilesList, GetFilesList("$Path/$FileFound") );
+    }
+  }
+  return @FilesList;
+}

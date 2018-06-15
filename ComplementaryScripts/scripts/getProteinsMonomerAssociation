@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w -- -*-Perl-*-
+
+use IO::File;
+use warnings;
+use strict;
+use HTTP::Tiny;
+
+my ($fileIn, $fileInExistingSequence, $dirOutBlast, $dirOutHmm) = @ARGV;
+
+if (!defined $dirOutHmm) {die "USAGE: proteins.dat uniprot-seq-ids.seq monomerDirectory complexesDirectory\n";}
+
+my $ifhDat = new IO::File "<$fileIn"
+    or die "Can't read from input file '$fileIn' : $!\n";
+my $ifhSeq = new IO::File "<$fileInExistingSequence"
+    or die "Can't read from input file '$fileInExistingSequence' : $!\n";
+
+my ($sequences) = &readSequences($ifhSeq);
+my ($assoc    ) = &readDatFile  ($ifhDat);
+
+my $notExistingUniprot = 0;
+
+foreach my $monomer (keys %{$assoc})
+{
+  my $tmp = {};
+  foreach my $uniprotId (keys %{$assoc->{$monomer}})
+  {
+    if (exists $sequences->{$uniprotId})
+    {
+      my $seq = $sequences->{$uniprotId};
+      $tmp->{$seq} = $uniprotId;
+    }
+    else
+    {
+      my ($seq) = &downloadSeq($uniprotId);
+      $tmp->{$seq} = $uniprotId;
+      $notExistingUniprot++;
+    }
+  }
+  my $numOfSeq = keys %{$tmp};
+  if ($numOfSeq < 1) 
+  {
+    print "ERROR: no sequence for $monomer\n";
+  }
+  elsif ($numOfSeq == 1)
+  {
+    my $ofh = new IO::File ">$dirOutBlast/$monomer.fasta"
+        or die "Can't read from input file '$dirOutBlast/$monomer.fasta' : $!\n";
+    foreach my $seq (keys %{$tmp})
+    {
+      my $uniprotId = $tmp->{$seq};
+      print $ofh ">$uniprotId\n$seq\n";
+    }
+    $ofh->close();
+  }
+  elsif ($numOfSeq > 1)
+  {
+    my $ofh = new IO::File ">$dirOutHmm/$monomer.fasta"
+        or die "Can't read from input file '$dirOutHmm/$monomer.fasta' : $!\n";
+    foreach my $seq (keys %{$tmp})
+    {
+      my $uniprotId = $tmp->{$seq};
+      print $ofh ">$uniprotId\n$seq\n";
+    }
+    $ofh->close();
+  }
+}
+
+print "I had to download $notExistingUniprot sequences, it's now done\n";
+
+$ifhDat->close();
+$ifhSeq->close();
+exit ;
+
+sub downloadSeq
+{
+  my ($id) = @_;
+  my $seq  = "";
+
+  my $url  = "http://www.uniprot.org/uniprot/$id.fasta";
+
+  my $response = HTTP::Tiny->new->get($url);
+  if ($response->{success})
+  {
+    my $txtFile = $response->{content};
+    my @array   = split("\n", $txtFile);
+    foreach my $line (@array)
+    {
+      if ($line =~ m#^\s*>.*$#)
+      {
+      }
+      elsif ($line =~ m#^\s*(\S+)\s*$#)
+      {
+        my $tmp = $1;
+        $seq = $seq.$tmp;
+      }
+      elsif ($line !~ m#^\s*$#)
+      {
+        print "WARNING: line not understood in downloaded sequence for $id:\n$line";
+      }
+    }
+  }
+  else
+  {
+    print "Failed: $response->{status} $response->{reasons} for $id\n";
+  }
+  
+  return($seq);
+}
+
+sub readDatFile
+{
+  my ($fh) = @_;
+  my $hash = {};
+
+  my $id = "";
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*UNIQUE-ID - (\S+)\s*$#)
+    {
+      $id = $1;
+    }
+    elsif ($line =~ m#^\s*DBLINKS - \(UNIPROT "(\S+)" .*$#)
+    {
+      my $uniprot = $1;
+      $hash->{$id}->{$uniprot} = 1;
+    }
+    elsif ($line =~ m#^\s*//\s*$#)
+    {
+      $id = "";
+    }
+  }
+
+  return($hash);
+}
+
+sub readSequences
+{
+  my ($fh) = @_;
+  my $hash = {};
+  
+  my $id   = "";
+
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*\(?\("(\S+)"\s*$#)
+    {
+      $id = $1;
+    }
+    elsif ($line =~ m#^\s*"(\S+)"\)\)?\s*$#)
+    {
+      my $seq = $1;
+      if (!exists $hash->{$id})
+      {
+        $hash->{$id} = $seq; 
+      }
+      else
+      {
+        print "WARNING: $id possess more that one sequence\n";
+      }
+    }
+    elsif ($line =~ m#^\s*\(?\("(\S+)" "(\S+)"\)\)?\s*#)
+    {
+      $id     = $1;
+      my $seq = $2;
+      if (!exists $hash->{$id})
+      {
+        $hash->{$id} = $seq; 
+      }
+      else
+      {
+        print "WARNING: $id possess more that one sequence\n";
+      }
+
+    }
+    elsif ($line !~ m#^\s*$#)
+    {
+      print "WARNING: line not understood:\n$line";
+    }
+
+  }
+
+  return($hash);
+}

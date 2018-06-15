@@ -1,0 +1,277 @@
+#!/usr/bin/perl -w -- -*-Perl-*-
+
+use IO::File;
+use warnings;
+use strict;
+
+my ($fileInDatProt, $dirInBlast, $dirInHmm, $fileOutCplx) = @ARGV;
+
+if (!defined $fileOutCplx) {die "USAGE: perl createCplxFile proteins.dat monomerDirectory complexesDirectory fileOutComplexes\n";} 
+
+my $ifhDat = new IO::File "<$fileInDatProt"
+    or die "Can't read input file '$fileInDatProt' : $!\n";
+my $ofh    = new IO::File ">$fileOutCplx"
+    or die "Can't write in output file '$fileOutCplx': $!\n";
+
+my @filesHmm   = GetFilesList($dirInHmm);
+my @filesBlast = GetFilesList($dirInBlast);
+
+my $sequences = {};
+
+my ($complexes) = &readDatFile($ifhDat);
+
+foreach my $fileIn (@filesHmm)
+{
+  my $ifh = new IO::File "<$fileIn"
+      or die "Can't read from input file '$fileIn' : $!\n";
+  ($sequences) = &readFastaFile($fileIn, $ifh, $sequences);
+  $ifh->close();
+}
+foreach my $fileIn (@filesBlast)
+{
+  my $ifh = new IO::File "<$fileIn"
+      or die "Can't read from input file '$fileIn' : $!\n";
+  ($sequences) = &readFastaFile($fileIn, $ifh, $sequences);
+  $ifh->close();
+}
+
+my $cplxOfCplx  = {};
+my $maxCoef     = 0;
+my $maxCoefCplx = "";
+
+foreach my $cplx (keys %{$complexes})
+{
+  my $txt = "$cplx";
+  foreach my $component1 (keys %{$complexes->{$cplx}})
+  {
+    my $coef1 = $complexes->{$cplx}->{$component1};
+    if ($coef1 > $maxCoef) {$maxCoef = $coef1; $maxCoefCplx = $cplx;}
+    if (exists $sequences->{$component1})
+    {
+      $txt = $txt."\t$component1;$coef1";
+    }
+    else
+    {
+      foreach my $component2 (keys %{$complexes->{$component1}})
+      {
+        my $coef2 = $complexes->{$component1}->{$component2};
+        if (exists $sequences->{$component2})
+        {
+          my $newCoef = $coef1*$coef2;
+          if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+          $txt = $txt."\t$component2;$newCoef";
+        }
+        else
+        {
+          foreach my $component3 (keys %{$complexes->{$component2}})
+          {
+            my $coef3 = $complexes->{$component2}->{$component3};
+            if (exists $sequences->{$component3})
+            {
+              my $newCoef = $coef1*$coef2*$coef3;
+              if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+              $txt = $txt."\t$component3;$newCoef";
+            }
+            else
+            {
+              foreach my $component4 (keys %{$complexes->{$component3}})
+              {
+                my $coef4 = $complexes->{$component3}->{$component4};
+                if (exists $sequences->{$component4})
+                {
+                  my $newCoef = $coef1*$coef2*$coef3*$coef4;
+                  if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+                  $txt = $txt."\t$component4;$newCoef";
+                }
+                else
+                {
+                  foreach my $component5 (keys %{$complexes->{$component4}})
+                  {
+                    my $coef5 = $complexes->{$component4}->{$component5};
+                    if (exists $sequences->{$component5})
+                    {
+                      my $newCoef = $coef1*$coef2*$coef3*$coef4*$coef5;
+                      if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+                      $txt = $txt."\t$component5;$newCoef";
+                    }
+                    else
+                    {
+                      foreach my $component6 (keys %{$complexes->{$component5}})
+                      {
+                        my $coef6 = $complexes->{$component5}->{$component6};
+                        if (exists $sequences->{$component6})
+                        {
+                          my $newCoef = $coef1*$coef2*$coef3*$coef4*$coef5*$coef6;
+                          if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+                          $txt = $txt."\t$component6;$newCoef";
+                        }
+                        else
+                        {
+                          foreach my $component7 (keys %{$complexes->{$component6}})
+                          {
+                            my $coef7 = $complexes->{$component6}->{$component7};
+                            if (exists $sequences->{$component7})
+                            {
+                              my $newCoef = $coef1*$coef2*$coef3*$coef4*$coef5*$coef6*$coef7;
+                              if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+                              $txt = $txt."\t$component7;$newCoef";
+                            }
+                            else
+                            {
+                              foreach my $component8 (keys %{$complexes->{$component7}})
+                              {
+                                my $coef8 = $complexes->{$component7}->{$component8};
+                                if (exists $sequences->{$component8})
+                                {
+                                  my $newCoef = $coef1*$coef2*$coef3*$coef4*$coef5*$coef6*$coef7*$coef8;
+                                  if ($newCoef > $maxCoef) {$maxCoef = $newCoef; $maxCoefCplx = $cplx;}
+                                  $txt = $txt."\t$component8;$newCoef";
+                                }
+                                else
+                                {
+                                  print "WARNING: $cplx\t$component1\t$component2\t$component3\t$component4\t$component5\t$component6\t$component7\t$component8\n";
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if ($txt =~ m#^\s*\S+\s*$#)
+  {
+    $txt = "$txt\tnoSequence";
+  }
+  print $ofh "$txt\n";
+}
+
+print "The complexes containing the max of subunit are composed of $maxCoef subunits, like $maxCoefCplx\n";
+$ifhDat->close();
+$ofh->close();
+exit ;
+
+sub readDatFile
+{
+  my ($fh) = @_;
+  my $hash = {};
+
+  my $id   = "";
+  my $comp = "";
+  my $seen = 0;
+
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*UNIQUE-ID - (\S+)\s*$#)
+    {
+      $id = $1;
+    }
+    elsif ($line =~ m#^\s*COMPONENTS - (\S+)\s*#)
+    {
+      $comp = $1;
+      $hash->{$id}->{$comp} = 1;
+      $seen = 0;
+    }
+    elsif ($line =~ m#^\^COEFFICIENT - (\S+)\s*$#)
+    {
+      my $coef = $1;
+      if ($seen == 1)
+      {
+        $hash->{$id}->{$comp} = $coef;
+      }
+    }
+    elsif ($line =~ m#^\s*COMPONENTS - .*#)
+    {
+      print "WARNING: component not understood for $id:\n$line";
+    }
+    elsif ($line =~ m#^\s*//\s*$#)
+    {
+      $id = "";
+    }
+    $seen++;
+  }
+
+  return($hash);
+}
+
+sub readFastaFile
+{
+  my ($fileName, $fh, $hash) = @_;
+  
+  my $monom = "";
+
+  if ($fileName =~ m#^\s*\S*/([^/]+).fasta\s*$#)
+  {
+    $monom = $1;
+  }
+  elsif ($fileName !~ m#^.*/\.\S.*#)
+  {
+    die "ERROR: file name not understood:$fileName\n";
+  }
+  
+  my $protId = "";
+  while (my $line = <$fh>)
+  {
+    if ($line =~ m#^\s*>\s*(\S.*+)\s*$#)
+    {
+      $protId = $1;
+    }
+    elsif ($line =~ m#^\s*(\S+)\s*$#)
+    {
+      my $seq = $1;
+      if (exists $hash->{$monom}->{$protId})
+      {
+        my $tmp = $hash->{$monom}->{$protId};
+        $tmp = $tmp.$seq;
+        $hash->{$monom}->{$protId} = $seq;
+      }
+      else
+      {
+        $hash->{$monom}->{$protId} = $seq;
+      }
+    }
+    elsif ($line !~ m#^\s*$#)
+    {
+      print "WARNING: line not understood in file $fileName:\n$line";
+    }
+  }
+
+  return($hash);
+}
+
+
+sub GetFilesList
+{
+  my $Path = $_[0];
+  my $FileFound;
+  my @FilesList=();
+
+  # Lecture de la liste des fichiers
+  opendir (my $FhRep, $Path)
+    or die "Impossible d'ouvrir le repertoire $Path\n";
+  my @Contenu = grep { !/^\.\.?$/ } readdir($FhRep);
+  closedir ($FhRep);
+
+  foreach my $FileFound (@Contenu) 
+  {
+    # Traitement des fichiers
+    if ( -f "$Path/$FileFound") 
+    {
+      push ( @FilesList, "$Path/$FileFound" );
+    }
+  # Traitement des repertoires
+    elsif ( -d "$Path/$FileFound") 
+    {
+      # Boucle pour lancer la recherche en mode recursif
+      push (@FilesList, GetFilesList("$Path/$FileFound") );
+    }
+  }
+  return @FilesList;
+}
