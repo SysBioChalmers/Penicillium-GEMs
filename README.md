@@ -11,11 +11,10 @@ Modeling of metabolism at the genome scale have proved to be an efficient approa
 
 **GEM Category:** Collection; **Utilisation:** maximising product growth, experimental data reconstruction; **Field:** metabolic-network reconstruction; **Type of Model:** reconstruction; **Model Source:** [MetaCyC](http://metacyc.org/), [iAL1006](http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002980); **Omic Source:** [Genomics](https://www.nature.com/articles/nmicrobiol201744); **Taxonomy:** Penicillium; **Metabolic System:** General Metabolism, Secondary metabolism; **Condition:** Rich Media;
 
-- Reference:  none yet
+#### Citation 
+ > S. Prigent, J.C. Nielsen, J.C. Frisvad, J. Nielsen. Reconstruction of 24 Penicillium genome-scale metabolic models shows diversity based on their secondary metabolism _Biotechnology and Bioengineering_ [https://doi.org/10.1002/bit.26739] (https://doi.org/10.1002/bit.26739)
 
-- Pubmed ID: none yet
-
-- Last update: 2017-11-30
+- Last update: 2023-01-27
 
 - The model:
 
